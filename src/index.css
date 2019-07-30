@@ -1,3 +1,8 @@
+
+:root{
+  --racerContainerVertMargin : 5px;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,9 +10,25 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  box-sizing: content-box;
+
+  background-color: rgb(14, 14, 117);
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+.raceContainer{
+  background-color: rgb(5, 5, 80);
+  position: relative;
+}
+
+.racerContainer{
+  width: 60px;
+  background-color: gray;
+  margin-top: var(--racerContainerVertMargin);
+  margin-bottom: var(--racerContainerVertMargin);
 }
