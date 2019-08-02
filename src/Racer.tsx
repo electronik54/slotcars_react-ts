@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 import update from 'immutability-helper';
+import { number } from 'prop-types';
 
 interface Props { }
 interface State {
@@ -22,7 +23,7 @@ interface State {
     , laps: number
   }
   , raceTimer: {
-    timer: NodeJS.Timeout | null
+    timer: ReturnType<typeof setTimeout> | null
     , interval: number
   }
 }
@@ -36,8 +37,8 @@ export default class Racer extends React.Component<Props, State>{
     this.state = {    //HOW TO ASSIGN <State> datatype here?
       racers: [
         {
-          name: ""
-          , maxSpeed: 0
+          name: "race1"
+          , maxSpeed: 50
           , position: {
             css: 0,
             world: 0
@@ -48,8 +49,8 @@ export default class Racer extends React.Component<Props, State>{
           , canRace: true
         }
         , {
-          name: ""
-          , maxSpeed: 0
+          name: "race2"
+          , maxSpeed: 40
           , position: {
             css: 0,
             world: 0
@@ -61,7 +62,7 @@ export default class Racer extends React.Component<Props, State>{
         }
       ]
       , track: {
-        length: 3000, name: "", laps: 2
+        length: 200, name: "", laps: 2
       }
       , raceTimer: {
         timer: null
@@ -85,9 +86,8 @@ export default class Racer extends React.Component<Props, State>{
       this.moveRacers(this.state);
     }, this.state.raceTimer.interval);
 
-    debugger
     const raceTimer = update(this.state, {
-      raceTimer: {timer: { $set: tm }}
+      raceTimer: { timer: { $set: tm } }
     });
     this.setState(
       raceTimer
@@ -95,25 +95,41 @@ export default class Racer extends React.Component<Props, State>{
 
   }
 
+  calcCssPosition = (pos: number): number => {
+    return ((100 / this.state.track.length * pos)-20);
+  }
+
   moveRacers = (st: State): void => {
 
-    let racers = [...st.racers]
+    let newState = { ...st }
       , trackLength = st.track.length;
 
     // racers[0].name == "sdf";
-    racers.forEach((racer, index) => {
+    newState.racers.forEach((racer, index) => {
 
-      debugger
+      if (!racer.canRace) return;
+
       racer.position.world += racer.maxSpeed;
+      racer.position.css = this.calcCssPosition(racer.position.world);
+
       if (racer.position.world >= trackLength) {
-        const canRace = update(this.state.racers, {
-          index: { canRace: { $set: false } } ,
+
+        console.log(`${racer.name} finished`)
+
+        // const canRace = update(this.state.racers, {
+        //   index: { canRace: { $set: false } },
+        // });
+
+        // this.setState({
+        //   racers: canRace
+        // });
+
+        newState = update(this.state, {
+          racers: { [index]: { canRace: { $set: false } } }
         });
 
-        this.setState({
-          racers: canRace
-        });
       }
+      this.setState(newState);
     });
 
   }
@@ -124,6 +140,9 @@ export default class Racer extends React.Component<Props, State>{
     const racer1Style = {
       marginLeft: `${this.state.racers[0].position.css}%`
     };
+    const racer2Style = {
+      marginLeft: `${this.state.racers[1].position.css}%`
+    };
 
     return (
 
@@ -132,8 +151,7 @@ export default class Racer extends React.Component<Props, State>{
 
         <article>
           <div className="racerContainer" style={racer1Style}>racer1</div>
-          <div className="racerContainer" style={racer1Style}>racer2</div>
-          <div className="racerContainer" style={racer1Style}>racer3</div>
+          <div className="racerContainer" style={racer2Style}>racer2</div>
         </article>
 
 
