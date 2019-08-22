@@ -13,7 +13,7 @@ body {
 
   box-sizing: content-box;
 
-  background-color: rgb(14, 14, 117);
+  background-color: rgb(143, 86, 0);
 }
 
 code {
@@ -22,13 +22,13 @@ code {
 }
 
 .raceContainer{
-  background-color: rgb(5, 5, 80);
+  background-color: rgb(94, 94, 94);
   position: relative;
 }
 
 .racerContainer{
   width: 60px;
-  background-color: gray;
+  background-color: rgb(218, 69, 69);
   margin-top: var(--racerContainerVertMargin);
   margin-bottom: var(--racerContainerVertMargin);
 }
