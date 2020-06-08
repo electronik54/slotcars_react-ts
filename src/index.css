@@ -32,3 +32,9 @@ code {
   margin-top: var(--racerContainerVertMargin);
   margin-bottom: var(--racerContainerVertMargin);
 }
+
+.track{
+  width: 80%;
+  margin: 0 auto;
+  background-color: rgba(0, 0, 0, 0.1);
+}

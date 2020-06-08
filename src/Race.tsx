@@ -16,16 +16,21 @@ interface IRacers {
   }
   , readonly carMake: String
   , readonly carBreakdownChance: number
-  , readonly carNitroChance: number
+  , readonly carNitro: {
+    count: number
+    , chance: number
+    , inUse: boolean
+  }
   , canRace: boolean
 }
 
 interface IState {
   racers: IRacers[]
-  , readonly track: {
+  , readonly race: {
     length: number
     , name: String
     , laps: number
+    , winner: string[]
   }
   , raceTimer: {
     interval: number
@@ -42,15 +47,19 @@ export default class Race extends React.Component<IProps, IState>{
     this.state = {
       racers: [
         {
-          name: "racer1"
+          name: ""
           , maxSpeed: 50
           , position: {
             css: 0,
             world: 0
           }
           , carMake: ""
-          , carBreakdownChance: 0
-          , carNitroChance: 0
+          , carBreakdownChance: 0.01
+          , carNitro: {
+            count: 1
+            , chance: 1
+            , inUse: false
+          }
           , canRace: true
         }
         , {
@@ -61,25 +70,20 @@ export default class Race extends React.Component<IProps, IState>{
             world: 0
           }
           , carMake: ""
-          , carBreakdownChance: 0
-          , carNitroChance: 0
-          , canRace: true
-        }
-        , {
-          name: "racer3"
-          , maxSpeed: 50
-          , position: {
-            css: 0,
-            world: 0
+          , carBreakdownChance: 0.08
+          , carNitro: {
+            count: 1
+            , chance: 1
+            , inUse: false
           }
-          , carMake: ""
-          , carBreakdownChance: 0
-          , carNitroChance: 0
           , canRace: true
         }
       ]
-      , track: {
-        length: 200, name: "RACE1", laps: 2
+      , race: {
+        length: 200
+        , name: "RACE1"
+        , laps: 2
+        , winner: []
       }
       , raceTimer: {
         interval: 1000
@@ -96,15 +100,39 @@ export default class Race extends React.Component<IProps, IState>{
     this.startRace();
   }
 
-  calculateSpeed = (racer:IRacers):number => {
-    
+  calculateSpeed = (racer: IRacers): number => {
+
     let speed = Math.floor(Math.random() * (racer.maxSpeed));
+
+    if (racer.carNitro.count > 0) {
+
+      if (Math.random() < racer.carNitro.chance) {
+
+        racer.carNitro.chance -= 1;
+        console.log(`%c${racer.name || "-no name-"} used nitro`, 'color: blue');
+        speed += (racer.maxSpeed / 2);
+
+        racer.carNitro.inUse = true;
+      } else {
+        racer.carNitro.inUse = false;
+      }
+
+    }
 
     return speed;
   }
 
+  setBrokenRacer = (racer: IRacers): boolean => {
+    if (Math.random() < racer.carBreakdownChance) {
+      console.log(`%c${racer.name || "-no name-"} cant race`, 'color:red')
+      racer.canRace = false;
+      return false;
+    }
+    return true;
+  }
+
   startRace = () => {
-    console.log(`<startRace>`)
+    console.log(`<startRace>`);
 
     this.raceTimer = setInterval(() => {
       this.moveRacers(this.state);
@@ -113,19 +141,17 @@ export default class Race extends React.Component<IProps, IState>{
   }
 
   calcCssPosition = (pos: number): number => {
-    return ((100 / this.state.track.length * pos) - 20);
+    return ((100 / this.state.race.length * pos) - 20);
   }
 
   moveRacers = (st: IState): void => {
     console.log(`<moveRacers>`)
 
     let newState = { ...st }
-      , trackLength = st.track.length;
-
-    let arrRacersCanRace = this.getWorkingCars();
+      , trackLength = st.race.length
+      , arrRacersCanRace = this.getWorkingCars();
 
     if (arrRacersCanRace.length == 0) {
-      //stop race
       this.stopRace();
       console.log(`no valid racers`);
       return;
@@ -142,32 +168,39 @@ export default class Race extends React.Component<IProps, IState>{
 
       if (racer.position.world >= trackLength) {
 
-        console.log(`${racer.name} finished`)
+        console.log(`%c${racer.name || "-no name-"} finished`, 'color:green')
 
         newState = update(this.state, {
           racers: { [index]: { canRace: { $set: false } } }
+          , race: { winner: { $push: [`${racer.name || '-no name-'}`] } }
         });
 
       }
+      this.setBrokenRacer(racer); // move this to top
       this.setState(newState);
     });
+
   }
 
   stopRace = () => {
-      console.log(`<stopRace>`)
-      clearInterval(this.raceTimer);
+    console.log(`<stopRace>`)
+    clearInterval(this.raceTimer);
+    if (this.state.race.winner.length > 0) {
+      console.log('%cWINNERS ARE', 'color:green; font-weight:bold');
+      console.table(this.state.race.winner);
+    }
   }
 
   getWorkingCars = () => {
     console.log(`<getWorkingCars>`);
-    return this.state.racers.filter(racer => racer.position.world < this.state.track.length && racer.canRace);
+    return this.state.racers.filter(racer => racer.position.world < this.state.race.length && racer.canRace);
   }
 
   render(): JSX.Element {
     return (
       <section className="raceContainer">
         <p>!! APP UNDER CONSTRUCTION !!</p>
-        <Track racers={this.state.racers} track={this.state.track}></Track>
+        <Track racers={this.state.racers} track={this.state.race}></Track>
       </section>
     );
   }
